@@ -1,6 +1,9 @@
 IMPORTANT!
 ==================
-This plugin will no longer be maintained. Welcome those who want to continue the project.
+There could be issues, I have recently forked this and fixed one major issue. Hope will fix them regularly.
+
+
+
 
 Rangeslider-videojs
 ==================
