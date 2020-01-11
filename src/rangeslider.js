@@ -35,8 +35,60 @@
  limitations under the License.
  */
 //----------------Load Plugin----------------//
-(function () {
-//-- Load RangeSlider plugin in videojs
+
+_vjs4 = {
+    on: function(element, eventName, func, flag) {
+        element.addEventListener(eventName, func, flag);
+    },
+    off: function(element, eventName, func, flag) {
+        element.removeEventListener(eventName, func, flag);
+    },
+    addClass: function(element, className) {
+        element.classList.add(className);
+    },
+    removeClass: function(element, className) {
+        element.classList.remove(className);
+    },
+    findPosition: function(element) {
+        return element.getBoundingClientRect();
+    },
+    round: function(n, precision) {
+        return parseFloat(n.toFixed(precision));
+    },
+    formatTime: function(totalSeconds) {
+        var minutes = Math.floor(totalSeconds / 60).toFixed(0);
+        var seconds = (totalSeconds % 60).toFixed(0);
+
+        if (seconds.length === 1) {
+            seconds = "0" + seconds;
+        }
+
+        return minutes + ':' + seconds;
+    },
+    blockTextSelection: function() {
+        // TODO
+    }
+};
+
+(function() {
+    function getYoutubeError(error_int) {
+        var _langErrors = {
+            // invalid-params
+            2: 'The request contains an invalid parameter value. For example, this error occurs if you specify a video ID that does not have 11 characters, or if the video ID contains invalid characters, such as exclamation points or asterisks.',
+            // html5-error
+            5: 'The requested content cannot be played in an HTML5 player or another error related to the HTML5 player has occurred.',
+            // video not found
+            100: 'The video requested was not found. This error occurs when a video has been removed (for any reason) or has been marked as private.',
+            // embed not allowed
+            101: 'The owner of the requested video does not allow it to be played in embedded players.',
+            // embed not allowed
+            150: 'The owner of the requested video does not allow it to be played in embedded players.'
+        };
+
+        return _langErrors[error_int] === undefined ? "Unknown Error" : _langErrors[error_int];
+    }
+
+    //-- Load RangeSlider plugin in videojs
     function RangeSlider_(options) {
         var player = this;
 
@@ -56,10 +108,10 @@
             if (plugin.options.locked)
                 plugin.lock(); //Lock the Range Slider
 
-            if (plugin.options.panel == false)
+            if (plugin.options.panel === false)
                 plugin.hidePanel(); //Hide the second Panel
 
-            if (plugin.options.controlTime == false)
+            if (plugin.options.controlTime === false)
                 plugin.hidecontrolTime(); //Hide the control time panel
 
             plugin._reset();
@@ -67,42 +119,21 @@
         }
         if (player.techName == 'Youtube') {
             //Detect youtube problems
-            player.one('error', function (e) {
-                switch (player.error) {
-                    case 2:
-                        alert("The request contains an invalid parameter value. For example, this error occurs if you specify a video ID that does not have 11 characters, or if the video ID contains invalid characters, such as exclamation points or asterisks.");
-                    case 5:
-                        alert("The requested content cannot be played in an HTML5 player or another error related to the HTML5 player has occurred.");
-                    case 100:
-                        alert("The video requested was not found. This error occurs when a video has been removed (for any reason) or has been marked as private.");
-                        break;
-                    case 101:
-                        alert("The owner of the requested video does not allow it to be played in embedded players.");
-                        break;
-                    case 150:
-                        alert("The owner of the requested video does not allow it to be played in embedded players.");
-                        break;
-                    default:
-                        alert("Unknown Error");
-                        break;
-                }
+            player.one('error', function(e) {
+                alert(getYoutubeError(player.error));
             });
             player.on('firstplay', initialVideoFinished);
         } else {
             player.one('playing', initialVideoFinished);
         }
 
-
-        console.log("Loaded Plugin RangeSlider");
     }
     videojs.plugin('rangeslider', RangeSlider_);
 
+    //-- Plugin
+    function RangeSlider(_player, options) {
 
-
-//-- Plugin
-    function RangeSlider(player, options) {
-        var player = player || this;
-
+        var player = _player || this;
         this.player = player;
 
         this.components = {}; // holds any custom components we add to the player
@@ -126,10 +157,10 @@
         this.init();
     }
 
-//-- Methods
+    //-- Methods
     RangeSlider.prototype = {
         /*Constructor*/
-        init: function () {
+        init: function() {
             var player = this.player || {};
 
             this.updatePrecision = 3;
@@ -158,19 +189,19 @@
             this.ctpr = this.components.ControlTimePanelRight = this.ctp.ControlTimePanelRight;
 
         },
-        lock: function () {
+        lock: function() {
             this.options.locked = true;
             this.ctp.enable(false);
             if (typeof this.box != 'undefined')
-                videojs.addClass(this.box.el_, 'locked');
+                _vjs4.addClass(this.box.el_, 'locked');
         },
-        unlock: function () {
+        unlock: function() {
             this.options.locked = false;
             this.ctp.enable();
             if (typeof this.box != 'undefined')
-                videojs.removeClass(this.box.el_, 'locked');
+                _vjs4.removeClass(this.box.el_, 'locked');
         },
-        show: function () {
+        show: function() {
             this.options.hidden = false;
             if (typeof this.rstb != 'undefined') {
                 this.rstb.show();
@@ -178,36 +209,36 @@
                     this.showcontrolTime();
             }
         },
-        hide: function () {
+        hide: function() {
             this.options.hidden = true;
             if (typeof this.rstb != 'undefined') {
                 this.rstb.hide();
                 this.ctp.hide();
             }
         },
-        showPanel: function () {
+        showPanel: function() {
             this.options.panel = true;
             if (typeof this.tp != 'undefined')
-                videojs.removeClass(this.tp.el_, 'disable');
+                _vjs4.removeClass(this.tp.el_, 'disable');
         },
-        hidePanel: function () {
+        hidePanel: function() {
             this.options.panel = false;
             if (typeof this.tp != 'undefined')
-                videojs.addClass(this.tp.el_, 'disable');
+                _vjs4.addClass(this.tp.el_, 'disable');
         },
-        showcontrolTime: function () {
+        showcontrolTime: function() {
             this.options.controlTime = true;
             if (typeof this.ctp != 'undefined')
                 this.ctp.show();
         },
-        hidecontrolTime: function () {
+        hidecontrolTime: function() {
             this.options.controlTime = false;
             if (typeof this.ctp != 'undefined')
                 this.ctp.hide();
         },
-        setValue: function (index, seconds, writeControlTime) {
+        setValue: function(index, seconds, writeControlTime) {
             //index = 0 for the left Arrow and 1 for the right Arrow. Value in seconds
-            var writeControlTime = typeof writeControlTime != 'undefined' ? writeControlTime : true;
+            writeControlTime = typeof writeControlTime != 'undefined' ? writeControlTime : true;
 
             var percent = this._percent(seconds);
             var isValidIndex = (index === 0 || index === 1);
@@ -215,21 +246,22 @@
             if (isChangeable && isValidIndex)
                 this.box.setPosition(index, percent, writeControlTime);
         },
-        setValues: function (start, end, writeControlTime) {
+        setValues: function(start, end, writeControlTime) {
             //index = 0 for the left Arrow and 1 for the right Arrow. Value in seconds
-            var writeControlTime = typeof writeControlTime != 'undefined' ? writeControlTime : true;
+            writeControlTime = typeof writeControlTime != 'undefined' ? writeControlTime : true;
 
             this._reset();
 
             this._setValuesLocked(start, end, writeControlTime);
         },
-        getValues: function () { //get values in seconds
-            var values = {}, start, end;
+        getValues: function() { //get values in seconds
+            var values = {},
+                start, end;
             start = this.start || this._getArrowValue(0);
             end = this.end || this._getArrowValue(1);
-            return {start: start, end: end};
+            return { start: start, end: end };
         },
-        playBetween: function (start, end, showRS) {
+        playBetween: function(start, end, showRS) {
             showRS = typeof showRS == 'undefined' ? true : showRS;
             this.player.currentTime(start);
             this.player.play();
@@ -243,11 +275,11 @@
 
             this.bar.activatePlay(start, end);
         },
-        loop: function (start, end, show) {
+        loop: function(start, end, show) {
             var player = this.player;
 
             if (player) {
-                player.on("pause", videojs.bind(this, function () {
+                player.on("pause", videojs.bind(this, function() {
                     this.looping = false;
                 }));
 
@@ -256,8 +288,7 @@
                 if (show) {
                     this.show();
                     this._reset();
-                }
-                else {
+                } else {
                     this.hide();
                 }
                 this._setValuesLocked(start, end);
@@ -272,43 +303,43 @@
                 this.player.on("timeupdate", videojs.bind(this, this.bar.process_loop));
             }
         },
-        _getArrowValue: function (index) {
-            var index = index || 0;
+        _getArrowValue: function(index) {
+            index = index || 0;
             var duration = this.player.duration();
 
             duration = typeof duration == 'undefined' ? 0 : duration;
 
             var percentage = this[index === 0 ? "left" : "right"].el_.style.left.replace("%", "");
-            if (percentage == "")
+            if (percentage === "")
                 percentage = index === 0 ? 0 : 100;
 
-            return videojs.round(this._seconds(percentage / 100), this.updatePrecision - 1);
+            return _vjs4.round(this._seconds(percentage / 100), this.updatePrecision - 1);
         },
-        _percent: function (seconds) {
+        _percent: function(seconds) {
             var duration = this.player.duration();
             if (isNaN(duration)) {
                 return 0;
             }
             return Math.min(1, Math.max(0, seconds / duration));
         },
-        _seconds: function (percent) {
+        _seconds: function(percent) {
             var duration = this.player.duration();
             if (isNaN(duration)) {
                 return 0;
             }
             return Math.min(duration, Math.max(0, percent * duration));
         },
-        _reset: function () {
+        _reset: function() {
             var duration = this.player.duration();
             this.tpl.el_.style.left = '0%';
             this.tpr.el_.style.left = '100%';
             this._setValuesLocked(0, duration);
         },
-        _setValuesLocked: function (start, end, writeControlTime) {
+        _setValuesLocked: function(start, end, writeControlTime) {
             var triggerSliderChange = typeof writeControlTime != 'undefined';
-            var writeControlTime = typeof writeControlTime != 'undefined' ? writeControlTime : true;
+            writeControlTime = typeof writeControlTime != 'undefined' ? writeControlTime : true;
             if (this.options.locked) {
-                this.unlock();//It is unlocked to change the bar position. In the end it will return the value.
+                this.unlock(); //It is unlocked to change the bar position. In the end it will return the value.
                 this.setValue(0, start, writeControlTime);
                 this.setValue(1, end, writeControlTime);
                 this.lock();
@@ -322,7 +353,10 @@
                 this._triggerSliderChange();
             }
         },
-        _checkControlTime: function (index, TextInput, timeOld) {
+        _parseCueTime: function(h, m, s) {
+            return (h | 0) * 3600 + (m | 0) * 60 + (s | 0);
+        },
+        _checkControlTime: function(index, TextInput, timeOld) {
             var h = TextInput[0],
                 m = TextInput[1],
                 s = TextInput[2],
@@ -331,6 +365,7 @@
                 newSec = s.value,
                 obj, objNew, objOld;
             index = index || 0;
+
 
             if (newHour != timeOld[0]) {
                 obj = h;
@@ -351,16 +386,16 @@
             var duration = this.player.duration() || 0,
                 durationSel;
 
-            var intRegex = /^\d+$/;//check if the objNew is an integer
+            var intRegex = /^\d+$/; //check if the objNew is an integer
             if (!intRegex.test(objNew) || objNew > 60) {
-                objNew = objNew == "" ? "" : objOld;
+                objNew = objNew === "" ? "" : objOld;
             }
 
-            newHour = newHour == "" ? 0 : newHour;
-            newMin = newMin == "" ? 0 : newMin;
-            newSec = newSec == "" ? 0 : newSec;
+            newHour = newHour === "" ? 0 : newHour;
+            newMin = newMin === "" ? 0 : newMin;
+            newSec = newSec === "" ? 0 : newSec;
 
-            durationSel = videojs.TextTrack.prototype.parseCueTime(newHour + ":" + newMin + ":" + newSec);
+            durationSel = this._parseCueTime(newHour, newMin, newSec);
             if (durationSel > duration) {
                 obj.value = objOld;
                 obj.style.border = "1px solid red";
@@ -374,101 +409,111 @@
             }
             if (index === 1) {
                 var oldTimeLeft = this.ctpl.el_.children,
-                    durationSelLeft = videojs.TextTrack.prototype.parseCueTime(oldTimeLeft[0].value + ":" + oldTimeLeft[1].value + ":" + oldTimeLeft[2].value);
+                    durationSelLeft = this._parseCueTime(oldTimeLeft[0].value, oldTimeLeft[1].value, oldTimeLeft[2].value);
                 if (durationSel < durationSelLeft) {
                     obj.style.border = "1px solid red";
                 }
             } else {
 
                 var oldTimeRight = this.ctpr.el_.children,
-                    durationSelRight = videojs.TextTrack.prototype.parseCueTime(oldTimeRight[0].value + ":" + oldTimeRight[1].value + ":" + oldTimeRight[2].value);
+                    durationSelRight = this._parseCueTime(oldTimeRight[0].value, oldTimeRight[1].value, oldTimeRight[2].value);
                 if (durationSel > durationSelRight) {
                     obj.style.border = "1px solid red";
                 }
             }
         },
-        _triggerSliderChange: function () {
+        _triggerSliderChange: function() {
             this.player.trigger("sliderchange");
         }
     };
 
 
-//----------------Public Functions----------------//
+    //----------------Public Functions----------------//
 
-//-- Public Functions added to video-js
+    //-- Public Functions added to video-js
 
-//Lock the Slider bar and it will not be possible to change the arrow positions
-    videojs.Player.prototype.lockSlider = function () {
+    var videojsPlayer = videojs.getComponent('Player');
+
+    // Add compatibility functions
+    videojsPlayer.prototype._v4 = _vjs4;
+
+    //Lock the Slider bar and it will not be possible to change the arrow positions
+    videojsPlayer.prototype.lockSlider = function() {
         return this.rangeslider.lock();
     };
 
-//Unlock the Slider bar and it will be possible to change the arrow positions
-    videojs.Player.prototype.unlockSlider = function () {
+    //Unlock the Slider bar and it will be possible to change the arrow positions
+    videojsPlayer.prototype.unlockSlider = function() {
         return this.rangeslider.unlock();
     };
 
-//Show the Slider Bar Component
-    videojs.Player.prototype.showSlider = function () {
+    //Show the Slider Bar Component
+    videojsPlayer.prototype.showSlider = function() {
         return this.rangeslider.show();
     };
 
-//Hide the Slider Bar Component
-    videojs.Player.prototype.hideSlider = function () {
+    //Hide the Slider Bar Component
+    videojsPlayer.prototype.hideSlider = function() {
         return this.rangeslider.hide();
     };
 
-//Show the Panel with the seconds of the selection
-    videojs.Player.prototype.showSliderPanel = function () {
+    //Show the Panel with the seconds of the selection
+    videojsPlayer.prototype.showSliderPanel = function() {
         return this.rangeslider.showPanel();
     };
 
-//Hide the Panel with the seconds of the selection
-    videojs.Player.prototype.hideSliderPanel = function () {
+    //Hide the Panel with the seconds of the selection
+    videojsPlayer.prototype.hideSliderPanel = function() {
         return this.rangeslider.hidePanel();
     };
 
 
-//Show the control Time to edit the position of the arrows
-    videojs.Player.prototype.showControlTime = function () {
+    //Show the control Time to edit the position of the arrows
+    videojsPlayer.prototype.showControlTime = function() {
         return this.rangeslider.showcontrolTime();
     };
 
-//Hide the control Time to edit the position of the arrows
-    videojs.Player.prototype.hideControlTime = function () {
+    //Hide the control Time to edit the position of the arrows
+    videojsPlayer.prototype.hideControlTime = function() {
         return this.rangeslider.hidecontrolTime();
     };
 
-//Set a Value in second for both arrows
-    videojs.Player.prototype.setValueSlider = function (start, end) {
+    //Set a Value in second for both arrows
+    videojsPlayer.prototype.setValueSlider = function(start, end) {
         return this.rangeslider.setValues(start, end);
     };
 
-//The video will be played in a selected section
-    videojs.Player.prototype.playBetween = function (start, end) {
+    //The video will be played in a selected section
+    videojsPlayer.prototype.playBetween = function(start, end) {
         return this.rangeslider.playBetween(start, end);
     };
 
-//The video will loop between to values
-    videojs.Player.prototype.loopBetween = function (start, end) {
+    //The video will loop between to values
+    videojsPlayer.prototype.loopBetween = function(start, end) {
         return this.rangeslider.loop(start, end);
     };
 
-//Set a Value in second for the arrows
-    videojs.Player.prototype.getValueSlider = function () {
+    //Set a Value in second for the arrows
+    videojsPlayer.prototype.getValueSlider = function() {
         return this.rangeslider.getValues();
     };
 
 
 
-//----------------Create new Components----------------//
+    //----------------Create new Components----------------//
 
-//--Charge the new Component into videojs
-    videojs.SeekBar.prototype.options_.children.RSTimeBar = {}; //Range Slider Time Bar
-    videojs.ControlBar.prototype.options_.children.ControlTimePanel = {}; //Panel with the time of the range slider
+    //--Charge the new Component into videojs
+    var videojsSeekBar = videojs.getComponent('SeekBar');
+    videojsSeekBar.prototype.options_.children.push('RSTimeBar'); //Range Slider Time Bar
+
+    var videojsControlBar = videojs.getComponent('ControlBar');
+    videojsControlBar.prototype.options_.children.push('ControlTimePanel'); //Panel with the time of the range slider
 
 
 
-//-- Design the new components
+    //-- Design the new components
+
+    var videojsComponent = videojs.getComponent('Component');
 
     /**
      * Range Slider Time Bar
@@ -476,31 +521,31 @@
      * @param {Object=} options
      * @constructor
      */
-    videojs.RSTimeBar = videojs.Component.extend({
+    var videojsRSTimeBar = videojs.extend(videojsComponent, {
         /** @constructor */
-        init: function (player, options) {
-            videojs.Component.call(this, player, options);
+        constructor: function(player, options) {
+            videojsComponent.call(this, player, options);
         }
     });
 
-    videojs.RSTimeBar.prototype.init_ = function () {
+    videojsRSTimeBar.prototype.init_ = function() {
         this.rs = this.player_.rangeslider;
     };
 
-    videojs.RSTimeBar.prototype.options_ = {
+    videojsRSTimeBar.prototype.options_ = {
         children: {
             'SeekRSBar': {}
         }
     };
 
-    videojs.RSTimeBar.prototype.createEl = function () {
-        return videojs.Component.prototype.createEl.call(this, 'div', {
+    videojsRSTimeBar.prototype.createEl = function() {
+        return videojsComponent.prototype.createEl.call(this, 'div', {
             className: 'vjs-timebar-RS',
             innerHTML: ''
         });
     };
 
-
+    videojs.registerComponent('RSTimeBar', videojsRSTimeBar);
 
     /**
      * Seek Range Slider Bar and holder for the selection bars
@@ -508,20 +553,19 @@
      * @param {Object=} options
      * @constructor
      */
-    videojs.SeekRSBar = videojs.Component.extend({
+    var videojsSeekRSBar = videojs.extend(videojsComponent, {
         /** @constructor */
-        init: function (player, options) {
-            videojs.Component.call(this, player, options);
+        constructor: function(player, options) {
+            videojsComponent.call(this, player, options);
             this.on('mousedown', this.onMouseDown);
-            this.on('touchstart', this.onMouseDown);
         }
     });
 
-    videojs.SeekRSBar.prototype.init_ = function () {
+    videojsSeekRSBar.prototype.init_ = function() {
         this.rs = this.player_.rangeslider;
     };
 
-    videojs.SeekRSBar.prototype.options_ = {
+    videojsSeekRSBar.prototype.options_ = {
         children: {
             'SelectionBar': {},
             'SelectionBarLeft': {},
@@ -530,33 +574,29 @@
         }
     };
 
-    videojs.SeekRSBar.prototype.createEl = function () {
-        return videojs.Component.prototype.createEl.call(this, 'div', {
+    videojsSeekRSBar.prototype.createEl = function() {
+        return videojsComponent.prototype.createEl.call(this, 'div', {
             className: 'vjs-rangeslider-holder'
         });
     };
 
 
-    videojs.SeekRSBar.prototype.onMouseDown = function (event) {
+    videojsSeekRSBar.prototype.onMouseDown = function(event) {
         event.preventDefault();
-        videojs.blockTextSelection();
+        _vjs4.blockTextSelection();
 
         if (!this.rs.options.locked) {
-            videojs.on(document, "mousemove", videojs.bind(this, this.onMouseMove));
-            videojs.on(document, "mouseup", videojs.bind(this, this.onMouseUp));
-            videojs.on(document, "touchmove", videojs.bind(this, this.onMouseMove));
-            videojs.on(document, "touchend", videojs.bind(this, this.onMouseUp));
+            _vjs4.on(document, "mousemove", videojs.bind(this, this.onMouseMove));
+            _vjs4.on(document, "mouseup", videojs.bind(this, this.onMouseUp));
         }
     };
 
-    videojs.SeekRSBar.prototype.onMouseUp = function (event) {
-        videojs.off(document, "mousemove", this.onMouseMove, false);
-        videojs.off(document, "mouseup", this.onMouseUp, false);
-        videojs.off(document, "touchmove", this.onMouseMove, false);
-        videojs.off(document, "touchend", this.onMouseUp, false);	
+    videojsSeekRSBar.prototype.onMouseUp = function(event) {
+        _vjs4.off(document, "mousemove", this.onMouseMove, false);
+        _vjs4.off(document, "mouseup", this.onMouseUp, false);
     };
 
-    videojs.SeekRSBar.prototype.onMouseMove = function (event) {
+    videojsSeekRSBar.prototype.onMouseMove = function(event) {
         var left = this.calculateDistance(event);
 
         if (this.rs.left.pressed)
@@ -564,7 +604,9 @@
         else if (this.rs.right.pressed)
             this.setPosition(1, left);
 
-        this.player_.currentTime(this.rs._seconds(left));
+        //Fix a problem with the presition in the display time
+        var ctd = this.player_.controlBar.currentTimeDisplay;
+        ctd.contentEl_.innerHTML = '<span class="vjs-control-text">' + ctd.localize('Current Time') + '</span>' + _vjs4.formatTime(this.rs._seconds(left), this.player_.duration());
 
         // Trigger slider change
         if (this.rs.left.pressed || this.rs.right.pressed) {
@@ -572,10 +614,10 @@
         }
     };
 
-    videojs.SeekRSBar.prototype.setPosition = function (index, left, writeControlTime) {
-        var writeControlTime = typeof writeControlTime != 'undefined' ? writeControlTime : true;
+    videojsSeekRSBar.prototype.setPosition = function(index, left, writeControlTime) {
+        writeControlTime = typeof writeControlTime != 'undefined' ? writeControlTime : true;
         //index = 0 for left side, index = 1 for right side
-        var index = index || 0;
+        index = index || 0;
 
         // Position shouldn't change when handle is locked
         if (this.rs.options.locked)
@@ -600,8 +642,14 @@
 
         //Check if left arrow is passing the right arrow
         if ((index === 0 ? bar.updateLeft(left) : bar.updateRight(left))) {
+
             Obj.style.left = (left * 100) + '%';
-            index === 0 ? bar.updateLeft(left) : bar.updateRight(left);
+
+            if (index === 0) {
+                bar.updateLeft(left);
+            } else {
+                bar.updateRight(left);
+            }
 
             this.rs[index === 0 ? 'start' : 'end'] = this.rs._seconds(left);
 
@@ -615,22 +663,22 @@
             }
 
             //-- Panel
-            var TimeText = videojs.formatTime(this.rs._seconds(left)),
+            var TimeText = _vjs4.formatTime(this.rs._seconds(left)),
                 tplTextLegth = tpl.children[0].innerHTML.length;
             var MaxP, MinP, MaxDisP;
             if (tplTextLegth <= 4) //0:00
                 MaxDisP = this.player_.isFullScreen ? 3.25 : 6.5;
-            else if (tplTextLegth <= 5)//00:00
+            else if (tplTextLegth <= 5) //00:00
                 MaxDisP = this.player_.isFullScreen ? 4 : 8;
-            else//0:00:00
+            else //0:00:00
                 MaxDisP = this.player_.isFullScreen ? 5 : 10;
             if (TimeText.length <= 4) { //0:00
                 MaxP = this.player_.isFullScreen ? 97 : 93;
                 MinP = this.player_.isFullScreen ? 0.1 : 0.5;
-            } else if (TimeText.length <= 5) {//00:00
+            } else if (TimeText.length <= 5) { //00:00
                 MaxP = this.player_.isFullScreen ? 96 : 92;
                 MinP = this.player_.isFullScreen ? 0.1 : 0.5;
-            } else {//0:00:00
+            } else { //0:00:00
                 MaxP = this.player_.isFullScreen ? 95 : 91;
                 MinP = this.player_.isFullScreen ? 0.1 : 0.5;
             }
@@ -653,7 +701,7 @@
                 var time = TimeText.split(":"),
                     h, m, s;
                 if (time.length == 2) {
-                    h = 00;
+                    h = 0;
                     m = time[0];
                     s = time[1];
                 } else {
@@ -669,7 +717,7 @@
         return true;
     };
 
-    videojs.SeekRSBar.prototype.calculateDistance = function (event) {
+    videojsSeekRSBar.prototype.calculateDistance = function(event) {
         var rstbX = this.getRSTBX();
         var rstbW = this.getRSTBWidth();
         var handleW = this.getWidth();
@@ -679,26 +727,20 @@
         rstbW = rstbW - handleW;
 
         // Percent that the click is through the adjusted area
-        //during touch event.pageX is not present
-        if(event.pageX){
-            return Math.max(0, Math.min(1, (event.pageX - rstbX) / rstbW));
-        }
-        else{
-            //this is a touch event
-            return Math.max(0, Math.min(1, (event.touches[0].pageX - rstbX) / rstbW));
-        }
+        return Math.max(0, Math.min(1, (event.pageX - rstbX) / rstbW));
     };
 
-    videojs.SeekRSBar.prototype.getRSTBWidth = function () {
+    videojsSeekRSBar.prototype.getRSTBWidth = function() {
         return this.el_.offsetWidth;
     };
-    videojs.SeekRSBar.prototype.getRSTBX = function () {
-        return videojs.findPosition(this.el_).left;
+    videojsSeekRSBar.prototype.getRSTBX = function() {
+        return _vjs4.findPosition(this.el_).left;
     };
-    videojs.SeekRSBar.prototype.getWidth = function () {
-        return this.rs.left.el_.offsetWidth;//does not matter left or right
+    videojsSeekRSBar.prototype.getWidth = function() {
+        return this.rs.left.el_.offsetWidth; //does not matter left or right
     };
 
+    videojs.registerComponent('SeekRSBar', videojsSeekRSBar);
 
 
     /**
@@ -707,43 +749,42 @@
      * @param {Object=} options
      * @constructor
      */
-    videojs.SelectionBar = videojs.Component.extend({
+    var videojsSelectionBar = videojs.extend(videojsComponent, {
         /** @constructor */
-        init: function (player, options) {
-            videojs.Component.call(this, player, options);
+        constructor: function(player, options) {
+            videojsComponent.call(this, player, options);
             this.on('mouseup', this.onMouseUp);
-            this.on('touchend', this.onMouseUp);
             this.fired = false;
         }
     });
 
-    videojs.SelectionBar.prototype.init_ = function () {
+    videojsSelectionBar.prototype.init_ = function() {
         this.rs = this.player_.rangeslider;
     };
 
-    videojs.SelectionBar.prototype.createEl = function () {
-        return videojs.Component.prototype.createEl.call(this, 'div', {
+    videojsSelectionBar.prototype.createEl = function() {
+        return videojsComponent.prototype.createEl.call(this, 'div', {
             className: 'vjs-selectionbar-RS'
         });
     };
 
-    videojs.SelectionBar.prototype.onMouseUp = function () {
+    videojsSelectionBar.prototype.onMouseUp = function() {
         var start = this.rs.left.el_.style.left.replace("%", ""),
             end = this.rs.right.el_.style.left.replace("%", ""),
             duration = this.player_.duration(),
             precision = this.rs.updatePrecision,
-            segStart = videojs.round(start * duration / 100, precision),
-            segEnd = videojs.round(end * duration / 100, precision);
+            segStart = _vjs4.round(start * duration / 100, precision),
+            segEnd = _vjs4.round(end * duration / 100, precision);
         this.player_.currentTime(segStart);
         this.player_.play();
         this.rs.bar.activatePlay(segStart, segEnd);
     };
 
-    videojs.SelectionBar.prototype.updateLeft = function (left) {
-        var rightVal = this.rs.right.el_.style.left != '' ? this.rs.right.el_.style.left : 100;
+    videojsSelectionBar.prototype.updateLeft = function(left) {
+        var rightVal = this.rs.right.el_.style.left !== '' ? this.rs.right.el_.style.left : 100;
         var right = parseFloat(rightVal) / 100;
 
-        var width = videojs.round((right - left), this.rs.updatePrecision); //round necessary for not get 0.6e-7 for example that it's not able for the html css width
+        var width = _vjs4.round((right - left), this.rs.updatePrecision); //round necessary for not get 0.6e-7 for example that it's not able for the html css width
 
         //(right+0.00001) is to fix the precision of the css in html
         if (left <= (right + 0.00001)) {
@@ -754,11 +795,11 @@
         return false;
     };
 
-    videojs.SelectionBar.prototype.updateRight = function (right) {
-        var leftVal = this.rs.left.el_.style.left != '' ? this.rs.left.el_.style.left : 0;
+    videojsSelectionBar.prototype.updateRight = function(right) {
+        var leftVal = this.rs.left.el_.style.left !== '' ? this.rs.left.el_.style.left : 0;
         var left = parseFloat(leftVal) / 100;
 
-        var width = videojs.round((right - left), this.rs.updatePrecision);//round necessary for not get 0.6e-7 for example that it's not able for the html css width
+        var width = _vjs4.round((right - left), this.rs.updatePrecision); //round necessary for not get 0.6e-7 for example that it's not able for the html css width
 
         //(right+0.00001) is to fix the precision of the css in html
         if ((right + 0.00001) >= left) {
@@ -769,7 +810,7 @@
         return false;
     };
 
-    videojs.SelectionBar.prototype.activatePlay = function (start, end) {
+    videojsSelectionBar.prototype.activatePlay = function(start, end) {
         this.timeStart = start;
         this.timeEnd = end;
 
@@ -778,12 +819,12 @@
         this.player_.on("timeupdate", videojs.bind(this, this._processPlay));
     };
 
-    videojs.SelectionBar.prototype.suspendPlay = function () {
+    videojsSelectionBar.prototype.suspendPlay = function() {
         this.fired = false;
         this.player_.off("timeupdate", videojs.bind(this, this._processPlay));
     };
 
-    videojs.SelectionBar.prototype._processPlay = function () {
+    videojsSelectionBar.prototype._processPlay = function() {
         //Check if current time is between start and end
         if (this.player_.currentTime() >= this.timeStart && (this.timeEnd < 0 || this.player_.currentTime() < this.timeEnd)) {
             if (this.fired) { //Do nothing if start has already been called
@@ -801,7 +842,7 @@
         }
     };
 
-    videojs.SelectionBar.prototype.process_loop = function () {
+    videojsSelectionBar.prototype.process_loop = function() {
         var player = this.player;
 
         if (player && this.looping) {
@@ -813,53 +854,53 @@
         }
     };
 
+    videojs.registerComponent('SelectionBar', videojsSelectionBar);
+
     /**
      * This is the left arrow to select the RangeSlider
      * @param {videojs.Player|Object} player
      * @param {Object=} options
      * @constructor
      */
-    videojs.SelectionBarLeft = videojs.Component.extend({
+    var videojsSelectionBarLeft = videojs.extend(videojsComponent, {
         /** @constructor */
-        init: function (player, options) {
-            videojs.Component.call(this, player, options);
+        constructor: function(player, options) {
+            videojsComponent.call(this, player, options);
             this.on('mousedown', this.onMouseDown);
-            this.on('touchstart', this.onMouseDown);
             this.pressed = false;
         }
     });
 
-    videojs.SelectionBarLeft.prototype.init_ = function () {
+    videojsSelectionBarLeft.prototype.init_ = function() {
         this.rs = this.player_.rangeslider;
     };
 
-    videojs.SelectionBarLeft.prototype.createEl = function () {
-        return videojs.Component.prototype.createEl.call(this, 'div', {
+    videojsSelectionBarLeft.prototype.createEl = function() {
+        return videojsComponent.prototype.createEl.call(this, 'div', {
             className: 'vjs-rangeslider-handle vjs-selectionbar-left-RS',
             innerHTML: '<div class="vjs-selectionbar-arrow-RS"></div><div class="vjs-selectionbar-line-RS"></div>'
         });
     };
 
-    videojs.SelectionBarLeft.prototype.onMouseDown = function (event) {
+    videojsSelectionBarLeft.prototype.onMouseDown = function(event) {
         event.preventDefault();
-        videojs.blockTextSelection();
+        _vjs4.blockTextSelection();
         if (!this.rs.options.locked) {
             this.pressed = true;
-            videojs.on(document, "mouseup", videojs.bind(this, this.onMouseUp));
-            videojs.on(document, "touchend", videojs.bind(this, this.onMouseUp));
-            videojs.addClass(this.el_, 'active');
+            _vjs4.on(document, "mouseup", videojs.bind(this, this.onMouseUp));
+            _vjs4.addClass(this.el_, 'active');
         }
     };
 
-    videojs.SelectionBarLeft.prototype.onMouseUp = function (event) {
-        videojs.off(document, "mouseup", this.onMouseUp, false);
-        videojs.off(document, "touchend", this.onMouseUp, false);
-        videojs.removeClass(this.el_, 'active');
+    videojsSelectionBarLeft.prototype.onMouseUp = function(event) {
+        _vjs4.off(document, "mouseup", this.onMouseUp, false);
+        _vjs4.removeClass(this.el_, 'active');
         if (!this.rs.options.locked) {
             this.pressed = false;
         }
     };
 
+    videojs.registerComponent('SelectionBarLeft', videojsSelectionBarLeft);
 
 
     /**
@@ -868,48 +909,46 @@
      * @param {Object=} options
      * @constructor
      */
-    videojs.SelectionBarRight = videojs.Component.extend({
+    var videojsSelectionBarRight = videojs.extend(videojsComponent, {
         /** @constructor */
-        init: function (player, options) {
-            videojs.Component.call(this, player, options);
+        constructor: function(player, options) {
+            videojsComponent.call(this, player, options);
             this.on('mousedown', this.onMouseDown);
-            this.on('touchstart', this.onMouseDown);
             this.pressed = false;
         }
     });
 
-    videojs.SelectionBarRight.prototype.init_ = function () {
+    videojsSelectionBarRight.prototype.init_ = function() {
         this.rs = this.player_.rangeslider;
     };
 
-    videojs.SelectionBarRight.prototype.createEl = function () {
-        return videojs.Component.prototype.createEl.call(this, 'div', {
+    videojsSelectionBarRight.prototype.createEl = function() {
+        return videojsComponent.prototype.createEl.call(this, 'div', {
             className: 'vjs-rangeslider-handle vjs-selectionbar-right-RS',
             innerHTML: '<div class="vjs-selectionbar-arrow-RS"></div><div class="vjs-selectionbar-line-RS"></div>'
         });
     };
 
 
-    videojs.SelectionBarRight.prototype.onMouseDown = function (event) {
+    videojsSelectionBarRight.prototype.onMouseDown = function(event) {
         event.preventDefault();
-        videojs.blockTextSelection();
+        _vjs4.blockTextSelection();
         if (!this.rs.options.locked) {
             this.pressed = true;
-            videojs.on(document, "mouseup", videojs.bind(this, this.onMouseUp));
-            videojs.on(document, "touchend", videojs.bind(this, this.onMouseUp));
-            videojs.addClass(this.el_, 'active');
+            _vjs4.on(document, "mouseup", videojs.bind(this, this.onMouseUp));
+            _vjs4.addClass(this.el_, 'active');
         }
     };
 
-    videojs.SelectionBarRight.prototype.onMouseUp = function (event) {
-        videojs.off(document, "mouseup", this.onMouseUp, false);
-        videojs.off(document, "touchend", this.onMouseUp, false);
-        videojs.removeClass(this.el_, 'active');
+    videojsSelectionBarRight.prototype.onMouseUp = function(event) {
+        _vjs4.off(document, "mouseup", this.onMouseUp, false);
+        _vjs4.removeClass(this.el_, 'active');
         if (!this.rs.options.locked) {
             this.pressed = false;
         }
     };
 
+    videojs.registerComponent('SelectionBarRight', videojsSelectionBarRight);
 
     /**
      * This is the time panel
@@ -917,30 +956,31 @@
      * @param {Object=} options
      * @constructor
      */
-    videojs.TimePanel = videojs.Component.extend({
+    var videojsTimePanel = videojs.extend(videojsComponent, {
         /** @constructor */
-        init: function (player, options) {
-            videojs.Component.call(this, player, options);
+        constructor: function(player, options) {
+            videojsComponent.call(this, player, options);
         }
     });
 
-    videojs.TimePanel.prototype.init_ = function () {
+    videojsTimePanel.prototype.init_ = function() {
         this.rs = this.player_.rangeslider;
     };
 
-    videojs.TimePanel.prototype.options_ = {
+    videojsTimePanel.prototype.options_ = {
         children: {
             'TimePanelLeft': {},
             'TimePanelRight': {},
         }
     };
 
-    videojs.TimePanel.prototype.createEl = function () {
-        return videojs.Component.prototype.createEl.call(this, 'div', {
+    videojsTimePanel.prototype.createEl = function() {
+        return videojsComponent.prototype.createEl.call(this, 'div', {
             className: 'vjs-timepanel-RS'
         });
     };
 
+    videojs.registerComponent('TimePanel', videojsTimePanel);
 
     /**
      * This is the left time panel
@@ -948,23 +988,25 @@
      * @param {Object=} options
      * @constructor
      */
-    videojs.TimePanelLeft = videojs.Component.extend({
+    var videojsTimePanelLeft = videojs.extend(videojsComponent, {
         /** @constructor */
-        init: function (player, options) {
-            videojs.Component.call(this, player, options);
+        constructor: function(player, options) {
+            videojsComponent.call(this, player, options);
         }
     });
 
-    videojs.TimePanelLeft.prototype.init_ = function () {
+    videojsTimePanelLeft.prototype.init_ = function() {
         this.rs = this.player_.rangeslider;
     };
 
-    videojs.TimePanelLeft.prototype.createEl = function () {
-        return videojs.Component.prototype.createEl.call(this, 'div', {
+    videojsTimePanelLeft.prototype.createEl = function() {
+        return videojsComponent.prototype.createEl.call(this, 'div', {
             className: 'vjs-timepanel-left-RS',
             innerHTML: '<span class="vjs-time-text">00:00</span>'
         });
     };
+
+    videojs.registerComponent('TimePanelLeft', videojsTimePanelLeft);
 
 
     /**
@@ -973,24 +1015,25 @@
      * @param {Object=} options
      * @constructor
      */
-    videojs.TimePanelRight = videojs.Component.extend({
+    var videojsTimePanelRight = videojs.extend(videojsComponent, {
         /** @constructor */
-        init: function (player, options) {
-            videojs.Component.call(this, player, options);
+        constructor: function(player, options) {
+            videojsComponent.call(this, player, options);
         }
     });
 
-    videojs.TimePanelRight.prototype.init_ = function () {
+    videojsTimePanelRight.prototype.init_ = function() {
         this.rs = this.player_.rangeslider;
     };
 
-    videojs.TimePanelRight.prototype.createEl = function () {
-        return videojs.Component.prototype.createEl.call(this, 'div', {
+    videojsTimePanelRight.prototype.createEl = function() {
+        return videojsComponent.prototype.createEl.call(this, 'div', {
             className: 'vjs-timepanel-right-RS',
             innerHTML: '<span class="vjs-time-text">00:00</span>'
         });
     };
 
+    videojs.registerComponent('TimePanelRight', videojsTimePanelRight);
 
     /**
      * This is the control time panel
@@ -998,33 +1041,33 @@
      * @param {Object=} options
      * @constructor
      */
-    videojs.ControlTimePanel = videojs.Component.extend({
+    var videojsControlTimePanel = videojs.extend(videojsComponent, {
         /** @constructor */
-        init: function (player, options) {
-            videojs.Component.call(this, player, options);
+        constructor: function(player, options) {
+            videojsComponent.call(this, player, options);
         }
     });
 
-    videojs.ControlTimePanel.prototype.init_ = function () {
+    videojsControlTimePanel.prototype.init_ = function() {
         this.rs = this.player_.rangeslider;
     };
 
 
-    videojs.ControlTimePanel.prototype.options_ = {
+    videojsControlTimePanel.prototype.options_ = {
         children: {
             'ControlTimePanelLeft': {},
             'ControlTimePanelRight': {},
         }
     };
 
-    videojs.ControlTimePanel.prototype.createEl = function () {
-        return videojs.Component.prototype.createEl.call(this, 'div', {
+    videojsControlTimePanel.prototype.createEl = function() {
+        return videojsComponent.prototype.createEl.call(this, 'div', {
             className: 'vjs-controltimepanel-RS vjs-control',
         });
     };
 
-    videojs.ControlTimePanel.prototype.enable = function (enable) {
-        var enable = typeof enable != 'undefined' ? enable : true;
+    videojsControlTimePanel.prototype.enable = function(enable) {
+        enable = typeof enable != 'undefined' ? enable : true;
         this.rs.ctpl.el_.children[0].disabled = enable ? "" : "disabled";
         this.rs.ctpl.el_.children[1].disabled = enable ? "" : "disabled";
         this.rs.ctpl.el_.children[2].disabled = enable ? "" : "disabled";
@@ -1033,6 +1076,7 @@
         this.rs.ctpr.el_.children[2].disabled = enable ? "" : "disabled";
     };
 
+    videojs.registerComponent('ControlTimePanel', videojsControlTimePanel);
 
     /**
      * This is the control left time panel
@@ -1040,37 +1084,38 @@
      * @param {Object=} options
      * @constructor
      */
-    videojs.ControlTimePanelLeft = videojs.Component.extend({
+    var videojsControlTimePanelLeft = videojs.extend(videojsComponent, {
         /** @constructor */
-        init: function (player, options) {
-            videojs.Component.call(this, player, options);
+        constructor: function(player, options) {
+            videojsComponent.call(this, player, options);
             this.on('keyup', this.onKeyUp);
             this.on('keydown', this.onKeyDown);
         }
     });
 
-    videojs.ControlTimePanelLeft.prototype.init_ = function () {
+    videojsControlTimePanelLeft.prototype.init_ = function() {
         this.rs = this.player_.rangeslider;
         this.timeOld = {};
     };
 
-    videojs.ControlTimePanelLeft.prototype.createEl = function () {
-        return videojs.Component.prototype.createEl.call(this, 'div', {
+    videojsControlTimePanelLeft.prototype.createEl = function() {
+        return videojsComponent.prototype.createEl.call(this, 'div', {
             className: 'vjs-controltimepanel-left-RS',
             innerHTML: 'Start: <input type="text" id="controltimepanel" maxlength="2" value="00"/>:<input type="text" id="controltimepanel" maxlength="2" value="00"/>:<input type="text" id="controltimepanel" maxlength="2" value="00"/>'
         });
     };
 
-    videojs.ControlTimePanelLeft.prototype.onKeyDown = function (event) {
+    videojsControlTimePanelLeft.prototype.onKeyDown = function(event) {
         this.timeOld[0] = this.el_.children[0].value;
         this.timeOld[1] = this.el_.children[1].value;
         this.timeOld[2] = this.el_.children[2].value;
     };
 
-    videojs.ControlTimePanelLeft.prototype.onKeyUp = function (event) {
+    videojsControlTimePanelLeft.prototype.onKeyUp = function(event) {
         this.rs._checkControlTime(0, this.el_.children, this.timeOld);
     };
 
+    videojs.registerComponent('ControlTimePanelLeft', videojsControlTimePanelLeft);
 
 
     /**
@@ -1079,34 +1124,36 @@
      * @param {Object=} options
      * @constructor
      */
-    videojs.ControlTimePanelRight = videojs.Component.extend({
+    var videojsControlTimePanelRight = videojs.extend(videojsComponent, {
         /** @constructor */
-        init: function (player, options) {
-            videojs.Component.call(this, player, options);
+        constructor: function(player, options) {
+            videojsComponent.call(this, player, options);
             this.on('keyup', this.onKeyUp);
             this.on('keydown', this.onKeyDown);
         }
     });
 
-    videojs.ControlTimePanelRight.prototype.init_ = function () {
+    videojsControlTimePanelRight.prototype.init_ = function() {
         this.rs = this.player_.rangeslider;
         this.timeOld = {};
     };
 
-    videojs.ControlTimePanelRight.prototype.createEl = function () {
-        return videojs.Component.prototype.createEl.call(this, 'div', {
+    videojsControlTimePanelRight.prototype.createEl = function() {
+        return videojsComponent.prototype.createEl.call(this, 'div', {
             className: 'vjs-controltimepanel-right-RS',
             innerHTML: 'End: <input type="text" id="controltimepanel" maxlength="2" value="00"/>:<input type="text" id="controltimepanel" maxlength="2" value="00"/>:<input type="text" id="controltimepanel" maxlength="2" value="00"/>'
         });
     };
 
-    videojs.ControlTimePanelRight.prototype.onKeyDown = function (event) {
+    videojsControlTimePanelRight.prototype.onKeyDown = function(event) {
         this.timeOld[0] = this.el_.children[0].value;
         this.timeOld[1] = this.el_.children[1].value;
         this.timeOld[2] = this.el_.children[2].value;
     };
 
-    videojs.ControlTimePanelRight.prototype.onKeyUp = function (event) {
+    videojsControlTimePanelRight.prototype.onKeyUp = function(event) {
         this.rs._checkControlTime(1, this.el_.children, this.timeOld);
     };
+
+    videojs.registerComponent('ControlTimePanelRight', videojsControlTimePanelRight);
 })();
